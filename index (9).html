@@ -1,0 +1,2444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ContentCraft AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM
+═══════════════════════════════════════ */
+:root {
+  --void: #06040f;
+  --deep: #0c0818;
+  --surface: #110e1e;
+  --raised: #181428;
+  --lifted: #1f1a35;
+  --rim: #2a2445;
+  --rim2: #352e58;
+
+  --iris: #7c5cfc;
+  --iris-dim: rgba(124,92,252,0.15);
+  --iris-glow: rgba(124,92,252,0.35);
+  --violet: #9b74ff;
+  --plasma: #c084fc;
+  --neon: #a78bfa;
+
+  --jade: #34d399;
+  --amber: #fbbf24;
+  --rose: #fb7185;
+  --sky: #38bdf8;
+
+  --text: #ede9fe;
+  --sub: #a89ec4;
+  --muted: #6b6492;
+  --ghost: #3d3660;
+
+  --hf: 'Clash Display', sans-serif;
+  --bf: 'Cabinet Grotesk', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--bf);
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ═══════════════════════════════════════
+   AUTH SCREEN
+═══════════════════════════════════════ */
+#auth-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--void);
+  overflow: hidden;
+}
+
+.auth-orbs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  animation: orb-float 8s ease-in-out infinite;
+}
+
+.orb-1 { width: 500px; height: 500px; background: var(--iris); top: -150px; left: -100px; animation-delay: 0s; }
+.orb-2 { width: 400px; height: 400px; background: var(--plasma); bottom: -100px; right: -80px; animation-delay: -3s; }
+.orb-3 { width: 300px; height: 300px; background: var(--sky); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -6s; }
+
+@keyframes orb-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30px) scale(1.05); }
+}
+
+.orb-3 { animation: orb-float2 8s ease-in-out infinite; }
+@keyframes orb-float2 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, calc(-50% - 20px)) scale(1.08); }
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 440px;
+  background: rgba(17, 14, 30, 0.85);
+  backdrop-filter: blur(40px);
+  border: 1px solid var(--rim);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,92,252,0.1);
+  animation: card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.auth-logo-area {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, var(--iris), var(--plasma));
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 22px;
+  box-shadow: 0 8px 32px var(--iris-glow);
+}
+
+.auth-logo-text {
+  font-family: var(--hf);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--text), var(--neon));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-logo-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.auth-tabs {
+  display: flex;
+  background: var(--deep);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 28px;
+  border: 1px solid var(--rim);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-family: var(--bf);
+  border: none;
+  background: transparent;
+}
+
+.auth-tab.active {
+  background: var(--lifted);
+  color: var(--text);
+  border: 1px solid var(--rim2);
+}
+
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+
+.field { margin-bottom: 16px; }
+
+.field label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--sub);
+  margin-bottom: 7px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.field input {
+  width: 100%;
+  background: var(--deep);
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--bf);
+  font-size: 14px;
+  padding: 11px 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.field input:focus {
+  border-color: var(--iris);
+  box-shadow: 0 0 0 3px var(--iris-dim);
+}
+
+.field input::placeholder { color: var(--ghost); }
+
+.field select {
+  width: 100%;
+  background: var(--deep);
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--bf);
+  font-size: 14px;
+  padding: 11px 14px;
+  outline: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.field select:focus { border-color: var(--iris); box-shadow: 0 0 0 3px var(--iris-dim); }
+.field select option { background: var(--deep); }
+
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--iris), var(--violet));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--bf);
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px var(--iris-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 30px var(--iris-glow); }
+.btn-primary:hover::after { opacity: 1; }
+.btn-primary:active { transform: translateY(0); }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rim);
+}
+
+.auth-divider span { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+.demo-accounts { display: flex; flex-direction: column; gap: 8px; }
+
+.demo-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--deep);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.demo-chip:hover { border-color: var(--iris); background: var(--iris-dim); }
+
+.demo-info { font-size: 12px; }
+.demo-email { color: var(--text); font-weight: 500; }
+.demo-pass { color: var(--muted); font-size: 11px; margin-top: 1px; }
+
+.role-pill {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.rp-admin { background: rgba(251,191,36,0.12); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+.rp-pro { background: rgba(52,211,153,0.1); color: var(--jade); border: 1px solid rgba(52,211,153,0.2); }
+.rp-free { background: var(--iris-dim); color: var(--neon); border: 1px solid rgba(124,92,252,0.2); }
+
+.err-msg {
+  background: rgba(251,113,133,0.1);
+  border: 1px solid rgba(251,113,133,0.2);
+  color: var(--rose);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  margin-bottom: 14px;
+  display: none;
+}
+
+/* ═══════════════════════════════════════
+   MAIN APP
+═══════════════════════════════════════ */
+#app-screen {
+  display: none;
+  width: 100%;
+  min-height: 100vh;
+}
+
+#app-screen.active { display: flex; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 256px;
+  min-height: 100vh;
+  background: var(--deep);
+  border-right: 1px solid var(--rim);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sb-logo {
+  padding: 20px 20px 18px;
+  border-bottom: 1px solid var(--rim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sb-logo-icon {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, var(--iris), var(--plasma));
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  box-shadow: 0 4px 12px var(--iris-glow);
+  flex-shrink: 0;
+}
+
+.sb-logo-text {
+  font-family: var(--hf);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  background: linear-gradient(135deg, var(--text), var(--neon));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sb-logo-version {
+  margin-left: auto;
+  background: var(--iris-dim);
+  border: 1px solid rgba(124,92,252,0.2);
+  color: var(--neon);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* PERSONA STRIP */
+.persona-strip {
+  margin: 14px 14px 0;
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.ps-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.ps-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--jade);
+  box-shadow: 0 0 6px var(--jade);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.ps-input {
+  width: 100%;
+  background: var(--deep);
+  border: 1px solid var(--rim);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--bf);
+  font-size: 11px;
+  padding: 5px 8px;
+  outline: none;
+  margin-bottom: 5px;
+  transition: border-color 0.15s;
+}
+
+.ps-input:last-child { margin-bottom: 0; }
+.ps-input:focus { border-color: var(--iris); }
+.ps-input::placeholder { color: var(--ghost); }
+
+/* NAV */
+.sb-nav { flex: 1; padding: 12px 10px; overflow-y: auto; scrollbar-width: none; }
+.sb-nav::-webkit-scrollbar { display: none; }
+
+.nav-group-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ghost);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 0 8px;
+  margin: 16px 0 5px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  transition: all 0.15s;
+  margin-bottom: 1px;
+  border: 1px solid transparent;
+  position: relative;
+  user-select: none;
+}
+
+.nav-item:hover { background: var(--surface); color: var(--sub); }
+
+.nav-item.active {
+  background: var(--iris-dim);
+  border-color: rgba(124,92,252,0.25);
+  color: var(--text);
+}
+
+.nav-item.active .nav-icon { color: var(--neon); }
+
+.nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+
+.nav-badge {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.nb-pro { background: var(--iris-dim); color: var(--neon); border: 1px solid rgba(124,92,252,0.2); }
+.nb-new { background: rgba(52,211,153,0.1); color: var(--jade); border: 1px solid rgba(52,211,153,0.2); }
+.nb-admin { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+
+/* SIDEBAR BOTTOM */
+.sb-bottom {
+  padding: 14px 16px;
+  border-top: 1px solid var(--rim);
+}
+
+.credits-section { margin-bottom: 14px; }
+
+.credits-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.credits-label { color: var(--muted); }
+.credits-value { color: var(--text); font-weight: 600; }
+
+.credits-track {
+  height: 4px;
+  background: var(--rim);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.credits-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--iris), var(--plasma));
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px var(--iris-glow);
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--iris), var(--plasma));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--iris-glow);
+}
+
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-plan { font-size: 10.5px; color: var(--muted); }
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.logout-btn:hover { color: var(--rose); background: rgba(251,113,133,0.1); }
+
+/* ═══════════════════════════════════════
+   MAIN AREA
+═══════════════════════════════════════ */
+.main {
+  margin-left: 256px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--void);
+}
+
+/* TOPBAR */
+.topbar {
+  height: 56px;
+  background: rgba(6, 4, 15, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--rim);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.tb-icon { font-size: 20px; }
+
+.tb-info { flex: 1; }
+.tb-title { font-family: var(--hf); font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+.tb-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+.tb-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+.phase-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.pt-research { background: rgba(56,189,248,0.1); color: var(--sky); border: 1px solid rgba(56,189,248,0.2); }
+.pt-seo { background: var(--iris-dim); color: var(--neon); border: 1px solid rgba(124,92,252,0.2); }
+.pt-write { background: rgba(52,211,153,0.1); color: var(--jade); border: 1px solid rgba(52,211,153,0.2); }
+.pt-qa { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+.pt-admin { background: rgba(251,113,133,0.1); color: var(--rose); border: 1px solid rgba(251,113,133,0.2); }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  font-family: var(--bf);
+  white-space: nowrap;
+}
+
+.btn-ghost { background: transparent; border: 1px solid var(--rim2); color: var(--sub); }
+.btn-ghost:hover { background: var(--surface); color: var(--text); }
+
+.btn-run {
+  background: linear-gradient(135deg, var(--iris), var(--violet));
+  color: white;
+  box-shadow: 0 4px 16px var(--iris-glow);
+}
+
+.btn-run:hover { transform: translateY(-1px); box-shadow: 0 6px 24px var(--iris-glow); }
+.btn-run:active { transform: translateY(0); }
+
+.btn-sm { padding: 6px 12px; font-size: 11.5px; }
+
+/* MODEL SELECTOR */
+.model-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--sub);
+  cursor: pointer;
+}
+
+.model-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--jade);
+  box-shadow: 0 0 6px var(--jade);
+}
+
+.model-selector select {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--bf);
+  outline: none;
+  cursor: pointer;
+}
+
+.model-selector select option { background: var(--deep); }
+
+/* CONTENT AREA */
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+
+/* PANELS */
+.panel { display: none; animation: panel-in 0.3s ease; }
+.panel.active { display: block; }
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: var(--hf);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.2px;
+}
+
+/* FORM */
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+input[type=text], input[type=url], input[type=email], input[type=password], input[type=number], textarea, select {
+  width: 100%;
+  background: var(--deep);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--bf);
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  transition: all 0.15s;
+  margin-bottom: 14px;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--iris);
+  box-shadow: 0 0 0 3px var(--iris-dim);
+}
+
+input::placeholder, textarea::placeholder { color: var(--ghost); }
+textarea { resize: vertical; min-height: 80px; }
+select option { background: var(--deep); }
+
+/* OUTPUT */
+.output-wrap {
+  background: var(--deep);
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rim);
+  background: var(--surface);
+}
+
+.output-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.output-actions { display: flex; gap: 6px; }
+
+.copy-btn {
+  background: var(--raised);
+  border: 1px solid var(--rim);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: var(--bf);
+}
+
+.copy-btn:hover { border-color: var(--iris); color: var(--neon); }
+
+.output-body {
+  padding: 18px;
+  min-height: 180px;
+  font-size: 13px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.output-placeholder {
+  color: var(--ghost);
+  font-style: italic;
+  font-size: 12.5px;
+}
+
+/* LOADING */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--rim2);
+  border-top-color: var(--iris);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* SCHEMA */
+.schema-box {
+  background: #040310;
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 11.5px;
+  color: #6ee7b7;
+  max-height: 280px;
+  overflow-y: auto;
+  white-space: pre;
+}
+
+/* GRID */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+/* PILLS */
+.pill-group { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+
+.pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--rim);
+  color: var(--muted);
+  background: var(--deep);
+  transition: all 0.12s;
+}
+
+.pill.on { border-color: var(--iris); color: var(--neon); background: var(--iris-dim); }
+
+/* STAT CARDS */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 12px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  filter: blur(20px);
+  opacity: 0.3;
+}
+
+.stat-card.iris::before { background: var(--iris); }
+.stat-card.jade::before { background: var(--jade); }
+.stat-card.amber::before { background: var(--amber); }
+.stat-card.plasma::before { background: var(--plasma); }
+
+.stat-num {
+  font-family: var(--hf);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.stat-label { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.stat-delta { font-size: 11px; color: var(--jade); margin-top: 6px; }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.tbl th {
+  text-align: left;
+  padding: 9px 14px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--rim);
+  text-transform: uppercase;
+}
+
+.tbl td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(42,36,69,0.4);
+  vertical-align: middle;
+}
+
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: rgba(124,92,252,0.04); }
+
+/* TAGS */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.t-admin { background: rgba(251,191,36,0.1); color: var(--amber); }
+.t-pro { background: rgba(52,211,153,0.1); color: var(--jade); }
+.t-free { background: var(--iris-dim); color: var(--neon); }
+.t-article { background: var(--iris-dim); color: var(--neon); }
+.t-meta { background: rgba(52,211,153,0.1); color: var(--jade); }
+.t-faq { background: rgba(251,113,133,0.1); color: var(--rose); }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--rim); margin: 18px 0; }
+.sec-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+
+/* NOTIF */
+.notif {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 999;
+  display: none;
+  animation: notif-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+@keyframes notif-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* MODAL */
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-bg.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--rim2);
+  border-radius: 18px;
+  width: 460px;
+  padding: 32px;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+  animation: card-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-title { font-family: var(--hf); font-size: 18px; font-weight: 700; margin-bottom: 22px; letter-spacing: -0.3px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+
+/* LOCKED */
+.locked-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(6,4,15,0.88);
+  backdrop-filter: blur(6px);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  gap: 10px;
+}
+
+.lock-icon { font-size: 30px; }
+.lock-title { font-family: var(--hf); font-size: 16px; font-weight: 600; }
+.lock-sub { font-size: 12.5px; color: var(--muted); }
+
+/* STEP PROGRESS */
+.steps { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11.5px;
+  color: var(--muted);
+  transition: all 0.25s;
+}
+
+.step.done { border-color: var(--jade); color: var(--jade); background: rgba(52,211,153,0.07); }
+.step.active { border-color: var(--iris); color: var(--neon); background: var(--iris-dim); animation: step-pulse 1.4s ease-in-out infinite; }
+
+@keyframes step-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--iris-glow); }
+  50% { box-shadow: 0 0 0 4px transparent; }
+}
+
+/* CHECKLISTS */
+.chk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+.chk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--deep);
+  border: 1px solid var(--rim);
+  border-radius: 7px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.chk-item:hover { border-color: var(--iris); }
+.chk-item.done { border-color: var(--jade); color: var(--jade); background: rgba(52,211,153,0.06); }
+
+.chk-box {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1.5px solid var(--rim2);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  transition: all 0.12s;
+}
+
+.chk-item.done .chk-box { background: var(--jade); border-color: var(--jade); color: #021a0e; }
+
+/* COLORS */
+.c-iris { color: var(--iris); }
+.c-jade { color: var(--jade); }
+.c-amber { color: var(--amber); }
+.c-rose { color: var(--rose); }
+.c-plasma { color: var(--plasma); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-logo-area">
+      <div class="auth-logo-icon">✦</div>
+      <div class="auth-logo-text">ContentCraft AI</div>
+      <div class="auth-logo-sub">Ultimate Content Intelligence System</div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="auth-login" class="auth-form active">
+      <div class="err-msg" id="login-err"></div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="l-email" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="auth-register" class="auth-form">
+      <div class="err-msg" id="reg-err"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>First Name</label><input type="text" id="r-fname" placeholder="Atta" /></div>
+        <div class="field"><label>Last Name</label><input type="text" id="r-lname" placeholder="Ullah" /></div>
+      </div>
+      <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="r-pass" placeholder="Min 6 chars" /></div>
+      <div class="field">
+        <label>Plan</label>
+        <select id="r-plan">
+          <option value="free">Free — 10 credits/month</option>
+          <option value="pro">Pro — 100 credits/month</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+    </div>
+
+    <div class="auth-divider"><span>or try demo accounts</span></div>
+
+    <div class="demo-accounts">
+      <div class="demo-chip" onclick="quickLogin('admin@contentcraft.ai','admin123')">
+        <div class="demo-info">
+          <div class="demo-email">admin@contentcraft.ai</div>
+          <div class="demo-pass">admin123</div>
+        </div>
+        <span class="role-pill rp-admin">ADMIN</span>
+      </div>
+      <div class="demo-chip" onclick="quickLogin('pro@example.com','pro123')">
+        <div class="demo-info">
+          <div class="demo-email">pro@example.com</div>
+          <div class="demo-pass">pro123</div>
+        </div>
+        <span class="role-pill rp-pro">PRO</span>
+      </div>
+      <div class="demo-chip" onclick="quickLogin('user@example.com','user123')">
+        <div class="demo-info">
+          <div class="demo-email">user@example.com</div>
+          <div class="demo-pass">user123</div>
+        </div>
+        <span class="role-pill rp-free">FREE</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════ -->
+<div id="app-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">✦</div>
+      <div class="sb-logo-text">ContentCraft</div>
+      <span class="sb-logo-version">v2</span>
+    </div>
+
+    <div class="persona-strip">
+      <div class="ps-header"><div class="ps-dot"></div> Active Persona</div>
+      <input class="ps-input" id="p-niche" placeholder="Niche (e.g. Angel Numbers)" value="Angel Numbers" />
+      <input class="ps-input" id="p-audience" placeholder="Target Audience" value="Spiritual seekers" />
+      <input class="ps-input" id="p-domain" placeholder="Domain" value="mysite.com" />
+    </div>
+
+    <div class="sb-nav">
+      <div class="nav-group-label">Research</div>
+      <div class="nav-item active" data-panel="article" onclick="navTo(this)">
+        <span class="nav-icon">✍️</span> Article Writer
+        <span class="nav-badge nb-pro">HERO</span>
+      </div>
+      <div class="nav-item" data-panel="s1" onclick="navTo(this)">
+        <span class="nav-icon">🔍</span> Keyword Classifier
+      </div>
+      <div class="nav-item" data-panel="s2" onclick="navTo(this)">
+        <span class="nav-icon">🗺️</span> Topic Cluster
+      </div>
+      <div class="nav-item" data-panel="s11" onclick="navTo(this)">
+        <span class="nav-icon">🕵️</span> Competitor Research
+      </div>
+
+      <div class="nav-group-label">SEO Tools</div>
+      <div class="nav-item" data-panel="s3" onclick="navTo(this)">
+        <span class="nav-icon">⚡</span> Snippet Optimizer
+      </div>
+      <div class="nav-item" data-panel="s4" onclick="navTo(this)">
+        <span class="nav-icon">🏷️</span> Bulk Meta Generator
+      </div>
+      <div class="nav-item" data-panel="s5" onclick="navTo(this)">
+        <span class="nav-icon">🔗</span> Internal Links
+      </div>
+      <div class="nav-item" data-panel="s6" onclick="navTo(this)">
+        <span class="nav-icon">❓</span> FAQ + Schema
+      </div>
+      <div class="nav-item" data-panel="s7" onclick="navTo(this)">
+        <span class="nav-icon">🔎</span> Content Gap
+      </div>
+
+      <div class="nav-group-label">Writing</div>
+      <div class="nav-item" data-panel="s14" onclick="navTo(this)">
+        <span class="nav-icon">🎯</span> Power Opening
+        <span class="nav-badge nb-new">NEW</span>
+      </div>
+      <div class="nav-item" data-panel="humanizer" onclick="navTo(this)">
+        <span class="nav-icon">🧠</span> AI Humanizer
+        <span class="nav-badge nb-pro" id="human-badge">PRO</span>
+      </div>
+
+      <div class="nav-group-label">Quality</div>
+      <div class="nav-item" data-panel="s8" onclick="navTo(this)">
+        <span class="nav-icon">🏆</span> E-E-A-T Enhancer
+      </div>
+      <div class="nav-item" data-panel="s10" onclick="navTo(this)">
+        <span class="nav-icon">📊</span> Quality Checker
+      </div>
+
+      <div class="nav-group-label" id="admin-label" style="display:none">Admin</div>
+      <div class="nav-item" data-panel="admin-users" onclick="navTo(this)" id="nav-admin-users" style="display:none">
+        <span class="nav-icon">👥</span> Manage Users
+        <span class="nav-badge nb-admin">ADMIN</span>
+      </div>
+      <div class="nav-item" data-panel="admin-stats" onclick="navTo(this)" id="nav-admin-stats" style="display:none">
+        <span class="nav-icon">📈</span> Analytics
+        <span class="nav-badge nb-admin">ADMIN</span>
+      </div>
+
+      <div class="nav-group-label">Account</div>
+      <div class="nav-item" data-panel="history" onclick="navTo(this)">
+        <span class="nav-icon">🗂️</span> History
+      </div>
+      <div class="nav-item" data-panel="account" onclick="navTo(this)">
+        <span class="nav-icon">👤</span> My Account
+      </div>
+    </div>
+
+    <div class="sb-bottom">
+      <div class="credits-section">
+        <div class="credits-header">
+          <span class="credits-label">Credits</span>
+          <span class="credits-value" id="sb-credits">—</span>
+        </div>
+        <div class="credits-track">
+          <div class="credits-fill" id="sb-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="user-section">
+        <div class="user-avatar" id="sb-avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="sb-name">—</div>
+          <div class="user-plan" id="sb-plan">—</div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()" title="Logout">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <span class="tb-icon" id="tb-icon">✍️</span>
+      <div class="tb-info">
+        <div class="tb-title" id="tb-title">Article Writer</div>
+        <div class="tb-sub" id="tb-sub">3,000-word SEO articles — all 18 quality rules enforced</div>
+      </div>
+      <div class="tb-right">
+        <span class="phase-tag pt-write" id="tb-phase">WRITING</span>
+        <div class="model-selector">
+          <div class="model-dot"></div>
+          <select id="model-select" onchange="updateModel()">
+            <option value="groq-llama-70b">Llama 3.3 70B (Free)</option>
+            <option value="groq-mixtral">Mixtral 8x7B (Free)</option>
+            <option value="gemini-flash">Gemini Flash (Free)</option>
+            <option value="gemini-pro">Gemini Pro (Free)</option>
+            <option value="claude-sonnet">Claude Sonnet (Pro)</option>
+            <option value="claude-haiku">Claude Haiku (Pro)</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="clearOutputs()">🗑</button>
+        <button class="btn btn-run btn-sm" onclick="runActive()">⚡ Generate</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ARTICLE WRITER -->
+      <div id="panel-article" class="panel active">
+        <div class="steps" id="art-steps">
+          <div class="step active" id="ast1">1 · Input</div>
+          <div class="step" id="ast2">2 · Outline</div>
+          <div class="step" id="ast3">3 · Writing</div>
+          <div class="step" id="ast4">4 · Schema</div>
+          <div class="step" id="ast5">5 · Done ✓</div>
+        </div>
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start">
+          <div>
+            <div class="card">
+              <div class="card-title">⚙️ Settings</div>
+              <label>Target Keyword *</label>
+              <input type="text" id="art-kw" placeholder="e.g. 111 angel number meaning" />
+              <label>Niche</label>
+              <input type="text" id="art-niche" placeholder="e.g. Spirituality" />
+              <label>Language</label>
+              <select id="art-lang"><option>English</option><option>German</option><option>Urdu</option></select>
+              <label>Length</label>
+              <select id="art-len">
+                <option value="2000">~2,000 words</option>
+                <option value="3000" selected>~3,000 words</option>
+                <option value="4000">~4,000 words</option>
+              </select>
+              <label>Tone</label>
+              <div class="pill-group" id="art-tone">
+                <div class="pill on" onclick="setPill(this,'art-tone')">Informative</div>
+                <div class="pill" onclick="setPill(this,'art-tone')">Conversational</div>
+                <div class="pill" onclick="setPill(this,'art-tone')">Spiritual</div>
+                <div class="pill" onclick="setPill(this,'art-tone')">Authoritative</div>
+              </div>
+              <label>LSI Keywords</label>
+              <textarea id="art-lsi" placeholder="Comma-separated LSI keywords..." style="min-height:56px;"></textarea>
+              <label>Competitor Gaps</label>
+              <textarea id="art-gaps" placeholder="Paste gaps from Content Gap tool..." style="min-height:56px;"></textarea>
+              <label>Schema</label>
+              <select id="art-schema">
+                <option value="both">FAQPage + HowTo</option>
+                <option value="faq">FAQPage Only</option>
+                <option value="none">No Schema</option>
+              </select>
+              <button class="btn btn-run" style="width:100%;margin-top:4px;" onclick="runArticle()">⚡ Write Article</button>
+            </div>
+          </div>
+          <div>
+            <div class="output-wrap" style="height:100%">
+              <div class="output-header">
+                <span class="output-label">📄 Generated Article</span>
+                <div class="output-actions">
+                  <button class="copy-btn" onclick="cp('art-out')">Copy</button>
+                  <button class="copy-btn" onclick="dlTxt('art-out','article')">↓ Download</button>
+                </div>
+              </div>
+              <div class="output-body" id="art-out">
+                <span class="output-placeholder">Configure settings on the left → click ⚡ Write Article to generate your full SEO article with all 18 quality rules applied.</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap" id="art-stats" style="display:none">
+              <div style="background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted)">Words: <b class="c-jade" id="art-wc">—</b></div>
+              <div style="background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted)">H2s: <b class="c-iris" id="art-h2">—</b></div>
+              <div style="background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted)">AI Score: <b class="c-jade">~8%</b></div>
+              <div style="background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted)">Flesch: <b class="c-plasma">~65</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KEYWORD CLASSIFIER -->
+      <div id="panel-s1" class="panel">
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">🔍 Keywords</div>
+            <label>One per line *</label>
+            <textarea id="s1-kws" style="min-height:180px" placeholder="111 angel number&#10;angel number meaning&#10;buy angel number book"></textarea>
+            <label>Context</label>
+            <input type="text" id="s1-ctx" placeholder="e.g. spiritual blog" />
+            <button class="btn btn-run" style="width:100%" onclick="runS1()">⚡ Classify</button>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Classification Results</span><button class="copy-btn" onclick="cp('s1-out')">Copy</button></div>
+            <div class="output-body" id="s1-out"><span class="output-placeholder">Intent · Format · Buyer Stage · Priority · Word Count for each keyword.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOPIC CLUSTER -->
+      <div id="panel-s2" class="panel">
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">🗺️ Cluster Settings</div>
+            <label>Niche *</label><input type="text" id="s2-niche" placeholder="Angel Numbers" />
+            <label>Pillar Keyword</label><input type="text" id="s2-pillar" placeholder="angel numbers meaning" />
+            <label>Language</label><select id="s2-lang"><option>English</option><option>German</option></select>
+            <button class="btn btn-run" style="width:100%" onclick="runS2()">⚡ Build Cluster</button>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Topic Cluster Map</span><button class="copy-btn" onclick="cp('s2-out')">Copy</button></div>
+            <div class="output-body" id="s2-out" style="min-height:400px"><span class="output-placeholder">1 Pillar + 8 Supporting pages with keywords, intent, links, and monetization.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPETITOR RESEARCH -->
+      <div id="panel-s11" class="panel">
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">🕵️ Research Settings</div>
+            <label>Primary Keyword *</label><input type="text" id="s11-kw" placeholder="111 angel number meaning" />
+            <label>Niche</label><input type="text" id="s11-niche" placeholder="Angel Numbers" />
+            <label>Depth</label>
+            <div class="pill-group" id="s11-depth">
+              <div class="pill on" onclick="setPill(this,'s11-depth')">Top 10</div>
+              <div class="pill" onclick="setPill(this,'s11-depth')">Top 20</div>
+              <div class="pill" onclick="setPill(this,'s11-depth')">Top 20 + Forums</div>
+            </div>
+            <button class="btn btn-run" style="width:100%" onclick="runS11()">⚡ Research</button>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Deep Research Report</span><button class="copy-btn" onclick="cp('s11-out')">Copy</button></div>
+            <div class="output-body" id="s11-out" style="min-height:420px"><span class="output-placeholder">Long-tails · H2/H3 patterns · Content gaps · PAA · User language · Contrarian angles.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SNIPPET -->
+      <div id="panel-s3" class="panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">⚡ Snippet Input</div>
+            <label>Target Question *</label><input type="text" id="s3-q" placeholder="What does 111 angel number mean?" />
+            <label>Paragraph</label><textarea id="s3-para" style="min-height:160px" placeholder="Paste paragraph..."></textarea>
+            <label>Type</label>
+            <div class="pill-group" id="s3-type">
+              <div class="pill on" onclick="setPill(this,'s3-type')">Paragraph</div>
+              <div class="pill" onclick="setPill(this,'s3-type')">Numbered</div>
+              <div class="pill" onclick="setPill(this,'s3-type')">Bullets</div>
+            </div>
+            <button class="btn btn-run" style="width:100%" onclick="runS3()">⚡ Optimize</button>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Featured Snippet</span><button class="copy-btn" onclick="cp('s3-out')">Copy</button></div>
+            <div class="output-body" id="s3-out" style="min-height:280px"><span class="output-placeholder">Under 55 words · Direct answer · Google AI Overview ready · HTML version included.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BULK META -->
+      <div id="panel-s4" class="panel">
+        <div class="card">
+          <div class="card-title">🏷️ Pages Input</div>
+          <label>Format: keyword | page type | brand (one per line) *</label>
+          <textarea id="s4-rows" style="min-height:120px" placeholder="111 angel number meaning | blog | MySite&#10;222 angel number | blog | MySite"></textarea>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label>Language</label><select id="s4-lang"><option>English</option><option>German</option></select></div>
+            <div><label>CTA</label><select id="s4-cta"><option>Learn more</option><option>Read now</option><option>Discover today</option></select></div>
+          </div>
+          <button class="btn btn-run" onclick="runS4()">⚡ Generate All</button>
+        </div>
+        <div class="output-wrap">
+          <div class="output-header"><span class="output-label">All Meta Tags</span><button class="copy-btn" onclick="cp('s4-out')">Copy All</button></div>
+          <div class="output-body" id="s4-out"><span class="output-placeholder">Title ≤60 chars · Description 145-155 chars · OG Tags for every row.</span></div>
+        </div>
+      </div>
+
+      <!-- INTERNAL LINKS -->
+      <div id="panel-s5" class="panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">🔗 Site Pages</div>
+            <label>Title | URL slug (one per line) *</label>
+            <textarea id="s5-pages" style="min-height:240px" placeholder="111 Angel Number | /111-angel-number&#10;222 Angel Number | /222-angel-number&#10;Angel Numbers Guide | /angel-numbers"></textarea>
+            <button class="btn btn-run" style="width:100%" onclick="runS5()">⚡ Plan Links</button>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Link Plan + Cannibalization</span><button class="copy-btn" onclick="cp('s5-out')">Copy</button></div>
+            <div class="output-body" id="s5-out" style="min-height:300px"><span class="output-placeholder">2-3 outbound links per page · Anchor text · Cannibalization flags · Orphan pages.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ SCHEMA -->
+      <div id="panel-s6" class="panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">❓ Content Input</div>
+            <textarea id="s6-content" style="min-height:220px" placeholder="Paste article content..."></textarea>
+            <label>FAQ Count</label>
+            <select id="s6-count"><option value="5">5 FAQs</option><option value="8" selected>8 FAQs</option><option value="10">10 FAQs</option></select>
+            <button class="btn btn-run" style="width:100%" onclick="runS6()">⚡ Extract + Schema</button>
+          </div>
+          <div>
+            <div class="output-wrap" style="margin-bottom:12px">
+              <div class="output-header"><span class="output-label">FAQ Content</span><button class="copy-btn" onclick="cp('s6-faq')">Copy</button></div>
+              <div class="output-body" id="s6-faq" style="min-height:140px"><span class="output-placeholder">FAQs here...</span></div>
+            </div>
+            <div class="output-wrap">
+              <div class="output-header"><span class="output-label">JSON-LD Schema</span><button class="copy-btn" onclick="cp('s6-schema')">Copy</button></div>
+              <div class="schema-box" id="s6-schema">// WordPress-ready schema...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT GAP -->
+      <div id="panel-s7" class="panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div class="card" style="margin-bottom:12px">
+              <div class="card-title">📄 My Outline</div>
+              <textarea id="s7-mine" style="min-height:130px" placeholder="## What is 111&#10;## 111 in Love&#10;## What to Do"></textarea>
+            </div>
+            <div class="card">
+              <div class="card-title">🔎 Competitor</div>
+              <textarea id="s7-comp" style="min-height:100px" placeholder="## 111 Numerology&#10;## Twin Flame 111"></textarea>
+              <label>Or URL</label>
+              <input type="url" id="s7-url" placeholder="https://competitor.com/article" />
+              <button class="btn btn-run" style="width:100%" onclick="runS7()">⚡ Analyse</button>
+            </div>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Gap Analysis</span><button class="copy-btn" onclick="cp('s7-out')">Copy</button></div>
+            <div class="output-body" id="s7-out" style="min-height:400px"><span class="output-placeholder">Missing topics · Missing angles · Priority additions · New H2s · Contrarian angles.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- E-E-A-T -->
+      <div id="panel-s8" class="panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">🏆 Article Input</div>
+            <textarea id="s8-article" style="min-height:260px" placeholder="Paste article..."></textarea>
+            <label>Focus</label>
+            <div class="pill-group" id="s8-focus">
+              <div class="pill on" onclick="setPill(this,'s8-focus')">All Signals</div>
+              <div class="pill" onclick="setPill(this,'s8-focus')">Experience</div>
+              <div class="pill" onclick="setPill(this,'s8-focus')">Expert Quotes</div>
+              <div class="pill" onclick="setPill(this,'s8-focus')">Stats & Data</div>
+            </div>
+            <button class="btn btn-run" style="width:100%" onclick="runS8()">⚡ Enhance</button>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">5 Before/After Edits</span><button class="copy-btn" onclick="cp('s8-out')">Copy</button></div>
+            <div class="output-body" id="s8-out" style="min-height:360px"><span class="output-placeholder">5 exact BEFORE → AFTER edits with E-E-A-T signal type and ranking impact.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POWER OPENING -->
+      <div id="panel-s14" class="panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">🎯 Opening Settings</div>
+            <label>Topic *</label><input type="text" id="s14-topic" placeholder="111 angel number meaning" />
+            <label>Reader Pain Point</label><input type="text" id="s14-pain" placeholder="Keeps seeing 111, wants to know why" />
+            <label>Style</label>
+            <div class="pill-group" id="s14-style">
+              <div class="pill on" onclick="setPill(this,'s14-style')">Story</div>
+              <div class="pill" onclick="setPill(this,'s14-style')">Shocking Stat</div>
+              <div class="pill" onclick="setPill(this,'s14-style')">Contrarian</div>
+              <div class="pill" onclick="setPill(this,'s14-style')">Confession</div>
+            </div>
+            <label>Industry Context</label><input type="text" id="s14-context" placeholder="e.g. 2025 spiritual wellness surge" />
+            <button class="btn btn-run" style="width:100%" onclick="runS14()">⚡ Generate Opening</button>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Power Opening (400-500 words)</span><button class="copy-btn" onclick="cp('s14-out')">Copy</button></div>
+            <div class="output-body" id="s14-out" style="min-height:340px"><span class="output-placeholder">Real scenario · Sensory details · Provocative questions · Personal story · Surprising stat · Value promise. No "Are you looking for..." ever.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI HUMANIZER -->
+      <div id="panel-humanizer" class="panel">
+        <div style="position:relative">
+          <div id="humanizer-lock" class="locked-overlay" style="display:none">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-title">Pro Feature</div>
+            <div class="lock-sub">Upgrade to unlock AI Humanizer</div>
+            <button class="btn btn-run" style="margin-top:8px" onclick="navTo(document.querySelector('[data-panel=account]'))">Upgrade to Pro →</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card">
+              <div class="card-title">🧠 Input</div>
+              <textarea id="human-in" style="min-height:280px" placeholder="Paste AI-generated content..."></textarea>
+              <label>Style</label>
+              <div class="pill-group" id="human-tone">
+                <div class="pill on" onclick="setPill(this,'human-tone')">Natural Blogger</div>
+                <div class="pill" onclick="setPill(this,'human-tone')">First-Person</div>
+                <div class="pill" onclick="setPill(this,'human-tone')">Expert Voice</div>
+              </div>
+              <button class="btn btn-run" style="width:100%" onclick="runHuman()">🧠 Humanize</button>
+            </div>
+            <div class="output-wrap">
+              <div class="output-header"><span class="output-label">Humanized Output</span><button class="copy-btn" onclick="cp('human-out')">Copy</button></div>
+              <div class="output-body" id="human-out" style="min-height:280px"><span class="output-placeholder">AI phrases removed · Contractions added · Active voice · Flesch 65+ · Under 12% AI detection.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUALITY CHECKER -->
+      <div id="panel-s10" class="panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">📊 85-Point Audit</div>
+            <textarea id="s10-article" style="min-height:200px" placeholder="Paste article..."></textarea>
+            <button class="btn btn-run" style="width:100%;margin-bottom:16px" onclick="runS10()">⚡ Run Audit</button>
+            <div class="sec-label">Manual Checklist</div>
+            <div class="chk-grid">
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>Flesch 60-70</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>Sentences &lt;20w</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>80%+ Active Voice</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>Zero AI Phrases</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>KW Density 0.3-0.4%</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>35-45 Entities</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>12-18 Int Links</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>AI Score &lt;12%</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>Personal Stories</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>3-5 Case Studies</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>8-12 Tool Refs</div>
+              <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"></div>FAQ Schema Ready</div>
+            </div>
+          </div>
+          <div class="output-wrap">
+            <div class="output-header"><span class="output-label">Quality Report</span><button class="copy-btn" onclick="cp('s10-out')">Copy</button></div>
+            <div class="output-body" id="s10-out" style="min-height:400px"><span class="output-placeholder">Full 85-point audit across Foundation, Craft, SEO, Authority, and Authenticity categories.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div id="panel-history" class="panel">
+        <div class="card">
+          <div class="card-title">🗂️ Content History</div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>Title</th><th>Type</th><th>Credits</th><th>Date</th></tr></thead>
+              <tbody id="history-body">
+                <tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px;">No history yet — start generating!</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div id="panel-account" class="panel">
+        <div class="g2">
+          <div>
+            <div class="card">
+              <div class="card-title">👤 Profile</div>
+              <div style="display:flex;gap:14px;align-items:center;margin-bottom:18px;">
+                <div class="user-avatar" id="acc-avatar" style="width:52px;height:52px;font-size:20px;border-radius:14px;">?</div>
+                <div>
+                  <div style="font-family:var(--hf);font-size:18px;font-weight:700" id="acc-name">—</div>
+                  <div style="font-size:12px;color:var(--muted)" id="acc-email">—</div>
+                  <span class="tag" id="acc-plan-tag" style="margin-top:6px;display:inline-block">—</span>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <label>Full Name</label><input type="text" id="acc-name-inp" />
+              <button class="btn btn-ghost" onclick="notify('✓ Profile saved!','jade')">Save Changes</button>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-title">💳 Plan & Credits</div>
+              <div id="acc-plan-display"></div>
+            </div>
+            <div class="card" style="margin-top:0">
+              <div class="card-title">📊 This Month</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap" id="acc-stats">
+                <div style="background:var(--deep);border:1px solid var(--rim);border-radius:7px;padding:10px 14px;text-align:center;">
+                  <div style="font-family:var(--hf);font-size:20px;font-weight:700;color:var(--neon)" id="acc-total">0</div>
+                  <div style="font-size:11px;color:var(--muted)">Generations</div>
+                </div>
+                <div style="background:var(--deep);border:1px solid var(--rim);border-radius:7px;padding:10px 14px;text-align:center;">
+                  <div style="font-family:var(--hf);font-size:20px;font-weight:700;color:var(--jade)" id="acc-left">0</div>
+                  <div style="font-size:11px;color:var(--muted)">Credits Left</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN USERS -->
+      <div id="panel-admin-users" class="panel">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="card-title" style="margin-bottom:0">👥 All Users</div>
+            <button class="btn btn-run btn-sm" onclick="openAddUser()">+ Add User</button>
+          </div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Credits</th><th>Joined</th><th>Actions</th></tr></thead>
+              <tbody id="admin-users-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN STATS -->
+      <div id="panel-admin-stats" class="panel">
+        <div class="g4" style="margin-bottom:16px">
+          <div class="stat-card iris">
+            <div class="stat-num c-iris" id="st-users">—</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-card jade">
+            <div class="stat-num c-jade" id="st-pro">—</div>
+            <div class="stat-label">Pro Users</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-num c-amber" id="st-gens">—</div>
+            <div class="stat-label">Total Generations</div>
+          </div>
+          <div class="stat-card plasma">
+            <div class="stat-num c-plasma" id="st-mrr">$0</div>
+            <div class="stat-label">MRR</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Quick Stats</div>
+          <div id="admin-stats-content" style="color:var(--muted);font-size:13px">Loading analytics...</div>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<!-- ADD USER MODAL -->
+<div class="modal-bg" id="modal-add">
+  <div class="modal">
+    <div class="modal-title">➕ Add New User</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label>First Name</label><input type="text" id="mu-fname" placeholder="John" /></div>
+      <div><label>Last Name</label><input type="text" id="mu-lname" placeholder="Doe" /></div>
+    </div>
+    <label>Email</label><input type="email" id="mu-email" placeholder="user@example.com" />
+    <label>Password</label><input type="password" id="mu-pass" placeholder="Min 6 chars" />
+    <label>Plan</label><select id="mu-plan"><option value="free">Free</option><option value="pro">Pro</option></select>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-run" onclick="addUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ═══════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════
+const API = 'https://contentcraft-backend-production.up.railway.app';
+
+// Local DB for demo (when backend not available)
+const DB = {
+  users: [
+    { id:'1', fname:'Admin', lname:'User', email:'admin@contentcraft.ai', pass:'admin123', role:'admin', plan:'admin', credits_used:0, credits_limit:9999, joined:'2025-01-01', generations:0 },
+    { id:'2', fname:'Pro', lname:'User', email:'pro@example.com', pass:'pro123', role:'user', plan:'pro', credits_used:18, credits_limit:100, joined:'2025-03-10', generations:18 },
+    { id:'3', fname:'Free', lname:'User', email:'user@example.com', pass:'user123', role:'user', plan:'free', credits_used:3, credits_limit:10, joined:'2025-04-01', generations:3 },
+  ],
+  history: []
+};
+
+let currentUser = null;
+let authToken = null;
+let selectedModel = 'groq-llama-70b';
+
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0)===(tab==='login')));
+  document.getElementById('auth-login').classList.toggle('active', tab==='login');
+  document.getElementById('auth-register').classList.toggle('active', tab==='register');
+}
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  const err = document.getElementById('login-err');
+
+  // Try backend first
+  try {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+    if (data.token) {
+      authToken = data.token;
+      loginSuccess(data.user);
+      return;
+    }
+  } catch(e) { /* fallback to local */ }
+
+  // Fallback to local DB
+  const user = DB.users.find(u => u.email === email && u.pass === pass);
+  if (!user) { err.textContent = '✗ Invalid email or password'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  authToken = 'local-' + user.id; // local demo token
+  loginSuccess(user);
+}
+
+async function doRegister() {
+  const fname = document.getElementById('r-fname').value.trim();
+  const lname = document.getElementById('r-lname').value.trim();
+  const email = document.getElementById('r-email').value.trim().toLowerCase();
+  const pass = document.getElementById('r-pass').value;
+  const plan = document.getElementById('r-plan').value;
+  const err = document.getElementById('reg-err');
+
+  if (!fname || !email || !pass) { err.textContent = '✗ Fill all fields'; err.style.display = 'block'; return; }
+  if (pass.length < 6) { err.textContent = '✗ Password min 6 chars'; err.style.display = 'block'; return; }
+
+  try {
+    const res = await fetch(`${API}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fname, lname, email, password: pass, plan })
+    });
+    const data = await res.json();
+    if (data.token) { authToken = data.token; loginSuccess(data.user); return; }
+    if (data.error) { err.textContent = '✗ ' + data.error; err.style.display = 'block'; return; }
+  } catch(e) {
+    // Local fallback
+    const newUser = { id: String(DB.users.length+1), fname, lname, email, pass, role:'user', plan, credits_used:0, credits_limit: plan==='pro'?100:10, joined: new Date().toISOString().slice(0,10), generations:0 };
+    DB.users.push(newUser);
+    loginSuccess(newUser);
+  }
+}
+
+function quickLogin(email, pass) {
+  document.getElementById('l-email').value = email;
+  document.getElementById('l-pass').value = pass;
+  doLogin();
+}
+
+function loginSuccess(user) {
+  currentUser = user;
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').classList.add('active');
+  setupApp();
+}
+
+function doLogout() {
+  currentUser = null;
+  authToken = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('l-email').value = '';
+  document.getElementById('l-pass').value = '';
+}
+
+// ═══════════════════════════════════════
+// SETUP
+// ═══════════════════════════════════════
+function setupApp() {
+  const u = currentUser;
+  const isAdmin = u.role === 'admin';
+
+  // Sidebar
+  const av = document.getElementById('sb-avatar');
+  av.textContent = u.fname[0].toUpperCase();
+  document.getElementById('sb-name').textContent = u.fname + ' ' + (u.lname||'');
+  document.getElementById('sb-plan').textContent = isAdmin ? '🛡 Administrator' : u.plan.toUpperCase() + ' Plan';
+
+  updateCredits();
+
+  // Admin nav
+  if (isAdmin) {
+    document.getElementById('admin-label').style.display = 'block';
+    document.getElementById('nav-admin-users').style.display = 'flex';
+    document.getElementById('nav-admin-stats').style.display = 'flex';
+    renderAdminUsers();
+    loadAdminStats();
+  }
+
+  // Humanizer lock
+  document.getElementById('humanizer-lock').style.display = (u.plan==='free' && !isAdmin) ? 'flex' : 'none';
+  document.getElementById('human-badge').style.display = (u.plan==='free' && !isAdmin) ? 'inline-flex' : 'none';
+
+  // Account panel
+  document.getElementById('acc-avatar').textContent = u.fname[0];
+  document.getElementById('acc-name').textContent = u.fname + ' ' + (u.lname||'');
+  document.getElementById('acc-email').textContent = u.email;
+  document.getElementById('acc-name-inp').value = u.fname + ' ' + (u.lname||'');
+
+  const planTag = document.getElementById('acc-plan-tag');
+  if (isAdmin) { planTag.className = 'tag t-admin'; planTag.textContent = 'ADMIN'; }
+  else if (u.plan==='pro') { planTag.className = 'tag t-pro'; planTag.textContent = 'PRO'; }
+  else { planTag.className = 'tag t-free'; planTag.textContent = 'FREE'; }
+
+  document.getElementById('acc-left').textContent = isAdmin ? '∞' : (u.credits_limit - u.credits_used);
+
+  document.getElementById('acc-plan-display').innerHTML = isAdmin ? `
+    <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:14px;">
+      <div style="font-family:var(--hf);font-size:15px;font-weight:700;margin-bottom:8px;">Admin Access</div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.7">✓ Unlimited credits<br>✓ All tools<br>✓ User management<br>✓ Analytics</div>
+    </div>
+  ` : u.plan === 'pro' ? `
+    <div style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:10px;padding:14px;">
+      <div style="font-family:var(--hf);font-size:15px;font-weight:700;margin-bottom:8px;">Pro Plan</div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.7">✓ 100 credits/month<br>✓ All models<br>✓ AI Humanizer<br>✓ Priority generation</div>
+    </div>
+  ` : `
+    <div style="background:var(--iris-dim);border:1px solid rgba(124,92,252,0.2);border-radius:10px;padding:14px;">
+      <div style="font-family:var(--hf);font-size:15px;font-weight:700;margin-bottom:8px;">Free Plan</div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.7">✓ 10 credits/month<br>✓ All basic tools<br>✗ AI Humanizer<br>✗ Premium models</div>
+    </div>
+    <button class="btn btn-run" style="width:100%;margin-top:12px" onclick="notify('Upgrade coming soon!','amber')">⚡ Upgrade to Pro</button>
+  `;
+}
+
+function updateCredits() {
+  const u = currentUser;
+  if (!u) return;
+  const isAdmin = u.role === 'admin';
+  const pct = isAdmin ? 5 : Math.min(100, (u.credits_used / u.credits_limit) * 100);
+  const label = isAdmin ? '∞ unlimited' : `${u.credits_used} / ${u.credits_limit}`;
+  document.getElementById('sb-credits').textContent = label;
+  document.getElementById('sb-fill').style.width = pct + '%';
+  document.getElementById('acc-total').textContent = u.generations || 0;
+  document.getElementById('acc-left').textContent = isAdmin ? '∞' : (u.credits_limit - u.credits_used);
+}
+
+function useCredit(cost) {
+  const u = currentUser;
+  if (u.role === 'admin') return true;
+  if (u.credits_used + cost > u.credits_limit) {
+    notify('✗ Not enough credits!', 'rose');
+    return false;
+  }
+  u.credits_used += cost;
+  u.generations = (u.generations||0) + 1;
+  updateCredits();
+  DB.history.unshift({ userId: u.id, title: 'Generation', type: 'article', credits: cost, date: 'Just now' });
+  return true;
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+const NAV_META = {
+  'article': ['✍️','Article Writer','3,000-word SEO articles — all 18 quality rules enforced','pt-write','WRITING'],
+  's1': ['🔍','Keyword Classifier','Intent · Format · Buyer Stage · Priority','pt-research','RESEARCH'],
+  's2': ['🗺️','Topic Cluster Builder','1 Pillar + 8 Supporting pages with full internal link map','pt-research','RESEARCH'],
+  's11': ['🕵️','Deep Competitor Research','Top 20 pages · Reddit/Quora · Contrarian angles','pt-research','RESEARCH'],
+  's3': ['⚡','Snippet Optimizer','Rewrite paragraphs for Google Featured Snippets','pt-seo','SEO'],
+  's4': ['🏷️','Bulk Meta Generator','Title tags + descriptions for multiple pages at once','pt-seo','SEO'],
+  's5': ['🔗','Internal Link Planner','2-3 links per page + cannibalization flags','pt-seo','SEO'],
+  's6': ['❓','FAQ + Schema Extractor','WordPress-ready JSON-LD schema markup','pt-seo','SEO'],
+  's7': ['🔎','Content Gap Analyser','Missing topics · angles · subtopics vs competitors','pt-seo','SEO'],
+  's14': ['🎯','Power Opening Generator','400-500 word story hook with real scenario + stat','pt-write','WRITING'],
+  'humanizer': ['🧠','AI Humanizer','Remove AI patterns · Under 12% detection','pt-write','WRITING'],
+  's8': ['🏆','E-E-A-T Enhancer','5 exact before/after edits for trust signals','pt-qa','QA'],
+  's10': ['📊','Quality Checker (85pts)','Full audit across Foundation · Craft · SEO · Authority','pt-qa','QA'],
+  'history': ['🗂️','Content History','All your generated content','pt-qa','ACCOUNT'],
+  'account': ['👤','My Account','Profile · Plan · Usage','pt-qa','ACCOUNT'],
+  'admin-users': ['👥','Manage Users','View · edit · add users','pt-admin','ADMIN'],
+  'admin-stats': ['📈','Analytics','Platform-wide usage overview','pt-admin','ADMIN'],
+};
+
+function navTo(el) {
+  const p = el.dataset.panel;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(pn => pn.classList.remove('active'));
+  document.getElementById('panel-'+p).classList.add('active');
+  const m = NAV_META[p] || ['✦','ContentCraft','','pt-write',''];
+  document.getElementById('tb-icon').textContent = m[0];
+  document.getElementById('tb-title').textContent = m[1];
+  document.getElementById('tb-sub').textContent = m[2];
+  const pb = document.getElementById('tb-phase');
+  pb.className = 'phase-tag ' + m[3];
+  pb.textContent = m[4];
+  if (p === 'admin-users') renderAdminUsers();
+  if (p === 'admin-stats') loadAdminStats();
+}
+
+function runActive() {
+  const active = document.querySelector('.panel.active')?.id?.replace('panel-','');
+  const map = { article:runArticle, s1:runS1, s2:runS2, s11:runS11, s3:runS3, s4:runS4, s5:runS5, s6:runS6, s7:runS7, s14:runS14, humanizer:runHuman, s8:runS8, s10:runS10 };
+  if (map[active]) map[active]();
+}
+
+function clearOutputs() {
+  document.querySelectorAll('.output-body').forEach(b => b.innerHTML='<span class="output-placeholder">Cleared.</span>');
+  document.querySelectorAll('.schema-box').forEach(b => b.textContent='// Cleared.');
+}
+
+function updateModel() {
+  selectedModel = document.getElementById('model-select').value;
+}
+
+// ═══════════════════════════════════════
+// AI CALL
+// ═══════════════════════════════════════
+function getPersona() {
+  return {
+    niche: document.getElementById('p-niche').value || 'general',
+    audience: document.getElementById('p-audience').value || 'general readers',
+    domain: document.getElementById('p-domain').value || 'mysite.com',
+  };
+}
+
+async function callAPI(endpoint, body) {
+  // If no real token, generate directly with Groq/Gemini from frontend
+  if (!authToken || authToken.startsWith('local-')) {
+    return await callDirectAI(endpoint, body);
+  }
+
+  try {
+    const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
+    const res = await fetch(`${API}/api/generate/${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ...body, model: selectedModel, persona: getPersona() })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data.content || data;
+  } catch(e) {
+    // Fallback to direct AI call
+    return await callDirectAI(endpoint, body);
+  }
+}
+
+// Direct AI call using Anthropic API (no backend needed)
+async function callDirectAI(endpoint, body) {
+  const persona = getPersona();
+  const system = `You are a senior SEO content strategist with 10+ years experience in ${persona.niche}. Write for ${persona.audience} on ${persona.domain}.
+RULES: Zero AI phrases (ensure/leverage/dive into/moreover/furthermore/delve/utilize). No semicolons/hashtags/emojis. Active voice 80%+. Sentences under 20 words. Flesch 60-70. AI detection under 12%.`;
+
+  let prompt = '';
+
+  if (endpoint === 'article') {
+    prompt = `Write a ${body.length||2500}-word ${body.tone||'informative'} ${body.language||'English'} SEO article: "${body.keyword}". Niche: ${body.niche||persona.niche}.
+OPENING (400-500w): Real specific scenario. NOT "Are you looking for...". Personal story, surprising stat.
+BODY: 12-15 H2s as search queries. Each H2: 50-70w direct answer + case study + examples + tools.
+${body.lsi?`LSI keywords: ${body.lsi}`:''}
+Add INTERNAL_LINK_1 to INTERNAL_LINK_10 placeholders.
+FAQ: 8 questions 80-100w each. CONCLUSION: 150w with callback.
+FORMAT: ## H2, ### H3, **bold**`;
+  } else if (endpoint === 'meta') {
+    prompt = `SEO meta tags for "${body.keyword}" in ${body.language||'English'}. Return ONLY JSON: {"title":"≤60 chars","description":"145-155 chars with CTA","og_title":"...","og_description":"..."}`;
+  } else if (endpoint === 'faq') {
+    prompt = `Write ${body.count||8} FAQs about "${body.topic||'the topic'}". Real PAA queries. Answers 40-60w.\n---FAQS---\nQ:[q]\nA:[a]\n---SCHEMA---\n<script type="application/ld+json">[FAQPage JSON-LD]<\/script>`;
+  } else if (endpoint === 'classify') {
+    prompt = `Classify these keywords:\n${body.keywords}\nFor each: Intent|Format|Buyer Stage|Priority|Word Count. Table with | separators.`;
+  } else if (endpoint === 'gap') {
+    prompt = `Content gap analysis.\nMY OUTLINE:\n${body.myOutline}\nCOMPETITOR:\n${body.competitorOutline||'typical competitor'}\n1.Missing Topics 2.Missing Angles 3.Priority Additions 4.New H2s 5.Contrarian Angles.`;
+  } else if (endpoint === 'snippet') {
+    prompt = `Featured snippet for: "${body.question}". Type: ${body.type||'Paragraph'}. Under 55 words. Direct answer. 1)Snippet 2)Word count 3)HTML`;
+  } else if (endpoint === 'cluster') {
+    prompt = `Topic cluster for "${body.niche}" in ${body.language||'English'}. 1 PILLAR + 8 SUPPORTING PAGES. Each: title, keyword, intent, word count, 2-3 links.`;
+  } else if (endpoint === 'humanize') {
+    prompt = `Rewrite as real human. REMOVE: ensure/leverage/dive into/moreover/furthermore. USE: contractions, active voice. Return ONLY humanized text:\n\n${body.text}`;
+  } else if (endpoint === 'eeat') {
+    prompt = `E-E-A-T audit. 5 EDITS:\nEDIT #N—[Type]\nBEFORE:[text]\nAFTER:[improved]\nWHY:[reason]\n\nARTICLE:\n${body.article}`;
+  } else if (endpoint === 'opening') {
+    prompt = `400-500 word power opening for "${body.topic}". Style: ${body.style||'Story'}. NEVER "Are you looking for...". Real scenario, costs, dates, personal story, stat.`;
+  } else {
+    prompt = body.keywords || body.myOutline || body.article || 'Generate content';
+  }
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  const text = data.content?.[0]?.text || '';
+
+  // Handle FAQ response
+  if (endpoint === 'faq') {
+    const parts = text.split('---SCHEMA---');
+    return { faqs: parts[0].replace('---FAQS---','').trim(), schema: parts[1]?.trim()||'' };
+  }
+
+  return text;
+}
+
+function setLoading(id, msg='Generating...') {
+  document.getElementById(id).innerHTML = `<div class="loading-indicator"><div class="spinner"></div>${msg}</div>`;
+}
+
+async function streamOut(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = '';
+  return new Promise(res => {
+    let i = 0;
+    const iv = setInterval(() => {
+      el.textContent = text.slice(0, i);
+      i += 20;
+      if (i >= text.length) { el.textContent = text; clearInterval(iv); res(); }
+    }, 8);
+  });
+}
+
+// ═══════════════════════════════════════
+// STEP PROGRESS
+// ═══════════════════════════════════════
+function setStep(n) {
+  for (let i=1;i<=5;i++) {
+    const s = document.getElementById('ast'+i);
+    if (!s) continue;
+    s.className = 'step' + (i<n?' done':i===n?' active':'');
+  }
+}
+
+// ═══════════════════════════════════════
+// TOOLS
+// ═══════════════════════════════════════
+async function runArticle() {
+  const kw = document.getElementById('art-kw').value.trim();
+  if (!kw) { notify('✗ Enter a keyword!', 'rose'); return; }
+  if (!useCredit(2)) return;
+
+  setLoading('art-out', 'Writing your article...');
+  setStep(2);
+
+  try {
+    const content = await callAPI('article', {
+      keyword: kw,
+      niche: document.getElementById('art-niche').value,
+      language: document.getElementById('art-lang').value,
+      length: document.getElementById('art-len').value,
+      tone: document.querySelector('#art-tone .pill.on')?.textContent || 'Informative',
+      lsi: document.getElementById('art-lsi').value,
+      gaps: document.getElementById('art-gaps').value,
+      schema: document.getElementById('art-schema').value,
+    });
+
+    setStep(4);
+    const fmt = content.replace(/^## (.+)$/gm,'\n━━ $1\n').replace(/^### (.+)$/gm,'\n▸ $1\n').replace(/\*\*(.+?)\*\*/g,'$1');
+    await streamOut('art-out', fmt);
+    setStep(5);
+
+    const wc = content.split(/\s+/).filter(Boolean).length;
+    const h2s = (content.match(/^## /gm)||[]).length;
+    document.getElementById('art-wc').textContent = wc.toLocaleString();
+    document.getElementById('art-h2').textContent = h2s;
+    document.getElementById('art-stats').style.display = 'flex';
+    notify('✓ Article generated!', 'jade');
+  } catch(e) { document.getElementById('art-out').textContent = 'Error: '+e.message; setStep(1); }
+}
+
+async function runS1() {
+  const kws = document.getElementById('s1-kws').value.trim();
+  if (!kws) { notify('✗ Enter keywords!', 'rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s1-out','Classifying...');
+  try {
+    const c = await callAPI('classify', { keywords: kws, context: document.getElementById('s1-ctx').value });
+    await streamOut('s1-out', c);
+  } catch(e) { document.getElementById('s1-out').textContent='Error: '+e.message; }
+}
+
+async function runS2() {
+  const niche = document.getElementById('s2-niche').value.trim();
+  if (!niche) { notify('✗ Enter niche!','rose'); return; }
+  if (!useCredit(2)) return;
+  setLoading('s2-out','Building cluster...');
+  try {
+    const c = await callAPI('cluster', { niche, pillarKeyword: document.getElementById('s2-pillar').value, language: document.getElementById('s2-lang').value });
+    await streamOut('s2-out', c);
+  } catch(e) { document.getElementById('s2-out').textContent='Error: '+e.message; }
+}
+
+async function runS11() {
+  const kw = document.getElementById('s11-kw').value.trim();
+  if (!kw) { notify('✗ Enter keyword!','rose'); return; }
+  if (!useCredit(2)) return;
+  setLoading('s11-out','Researching competitors...');
+  try {
+    const p = getPersona();
+    const c = await callAPI('classify', { keywords: kw + '\n(Deep competitor research mode: analyze top 20 results, Reddit, Quora, PAA, user language, contrarian angles, 6-month changes)', context: `Niche: ${p.niche}, deep research mode` });
+    await streamOut('s11-out', c);
+  } catch(e) { document.getElementById('s11-out').textContent='Error: '+e.message; }
+}
+
+async function runS3() {
+  const q = document.getElementById('s3-q').value.trim();
+  if (!q) { notify('✗ Enter question!','rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s3-out','Optimizing...');
+  try {
+    const c = await callAPI('snippet', { question: q, paragraph: document.getElementById('s3-para').value, type: document.querySelector('#s3-type .pill.on')?.textContent });
+    await streamOut('s3-out', c);
+  } catch(e) { document.getElementById('s3-out').textContent='Error: '+e.message; }
+}
+
+async function runS4() {
+  const rows = document.getElementById('s4-rows').value.trim();
+  if (!rows) { notify('✗ Enter rows!','rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s4-out','Generating metas...');
+  try {
+    const c = await callAPI('meta', { keyword: rows, pageType: 'Bulk pages', language: document.getElementById('s4-lang').value, cta: document.getElementById('s4-cta').value });
+    await streamOut('s4-out', c);
+  } catch(e) { document.getElementById('s4-out').textContent='Error: '+e.message; }
+}
+
+async function runS5() {
+  const pages = document.getElementById('s5-pages').value.trim();
+  if (!pages) { notify('✗ Enter pages!','rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s5-out','Planning links...');
+  try {
+    const c = await callAPI('gap', { myOutline: pages, competitorOutline: 'Internal link planning mode — analyze these pages for optimal internal linking strategy, anchor text, cannibalization, orphans' });
+    await streamOut('s5-out', c);
+  } catch(e) { document.getElementById('s5-out').textContent='Error: '+e.message; }
+}
+
+async function runS6() {
+  const content = document.getElementById('s6-content').value.trim();
+  if (!content) { notify('✗ Paste content!','rose'); return; }
+  if (!useCredit(2)) return;
+  setLoading('s6-faq','Extracting FAQs...');
+  document.getElementById('s6-schema').textContent = '// Generating...';
+  try {
+    const data = await callAPI('faq', { content, count: document.getElementById('s6-count').value });
+    if (typeof data === 'object') {
+      document.getElementById('s6-faq').textContent = data.faqs || data;
+      document.getElementById('s6-schema').textContent = data.schema || '// No schema';
+    } else {
+      const parts = data.split('---SCHEMA---');
+      document.getElementById('s6-faq').textContent = parts[0].replace('---FAQS---','').trim();
+      document.getElementById('s6-schema').textContent = parts[1]?.trim()||'// No schema';
+    }
+  } catch(e) { document.getElementById('s6-faq').textContent='Error: '+e.message; }
+}
+
+async function runS7() {
+  const mine = document.getElementById('s7-mine').value.trim();
+  if (!mine) { notify('✗ Add your outline!','rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s7-out','Analysing gaps...');
+  try {
+    const c = await callAPI('gap', { myOutline: mine, competitorOutline: document.getElementById('s7-comp').value || document.getElementById('s7-url').value });
+    await streamOut('s7-out', c);
+  } catch(e) { document.getElementById('s7-out').textContent='Error: '+e.message; }
+}
+
+async function runS8() {
+  const article = document.getElementById('s8-article').value.trim();
+  if (!article) { notify('✗ Paste article!','rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s8-out','Analysing E-E-A-T...');
+  try {
+    const c = await callAPI('eeat', { article, focus: document.querySelector('#s8-focus .pill.on')?.textContent });
+    await streamOut('s8-out', c);
+  } catch(e) { document.getElementById('s8-out').textContent='Error: '+e.message; }
+}
+
+async function runS14() {
+  const topic = document.getElementById('s14-topic').value.trim();
+  if (!topic) { notify('✗ Enter topic!','rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s14-out','Writing power opening...');
+  try {
+    const c = await callAPI('opening', { topic, pain: document.getElementById('s14-pain').value, style: document.querySelector('#s14-style .pill.on')?.textContent, context: document.getElementById('s14-context').value });
+    await streamOut('s14-out', c);
+  } catch(e) { document.getElementById('s14-out').textContent='Error: '+e.message; }
+}
+
+async function runHuman() {
+  if (currentUser.plan==='free' && currentUser.role!=='admin') { notify('✗ Pro feature only!','rose'); return; }
+  const text = document.getElementById('human-in').value.trim();
+  if (!text) { notify('✗ Paste content!','rose'); return; }
+  if (!useCredit(2)) return;
+  setLoading('human-out','Humanizing...');
+  try {
+    const c = await callAPI('humanize', { text, style: document.querySelector('#human-tone .pill.on')?.textContent });
+    await streamOut('human-out', c);
+  } catch(e) { document.getElementById('human-out').textContent='Error: '+e.message; }
+}
+
+async function runS10() {
+  const article = document.getElementById('s10-article').value.trim();
+  if (!article) { notify('✗ Paste article!','rose'); return; }
+  if (!useCredit(1)) return;
+  setLoading('s10-out','Running 85-point audit...');
+  try {
+    const c = await callAPI('classify', { keywords: 'QUALITY AUDIT MODE:\n'+article.slice(0,2000), context: '85-point content audit: Foundation(1-20), Writing Craft(21-40), Technical SEO(41-60), Authority(61-75), Authenticity(76-85). Score each /100 with PASS/FAIL items and specific fixes.' });
+    await streamOut('s10-out', c);
+  } catch(e) { document.getElementById('s10-out').textContent='Error: '+e.message; }
+}
+
+// ═══════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════
+function renderAdminUsers() {
+  const tbody = document.getElementById('admin-users-body');
+  if (!tbody) return;
+  tbody.innerHTML = DB.users.map(u => `
+    <tr>
+      <td><strong>${u.fname} ${u.lname||''}</strong></td>
+      <td style="color:var(--muted)">${u.email}</td>
+      <td><span class="tag ${u.role==='admin'?'t-admin':u.plan==='pro'?'t-pro':'t-free'}">${u.role==='admin'?'ADMIN':u.plan.toUpperCase()}</span></td>
+      <td>${u.role==='admin'?'∞':u.credits_used+' / '+u.credits_limit}</td>
+      <td style="color:var(--muted)">${u.joined}</td>
+      <td style="display:flex;gap:6px">
+        ${u.role!=='admin'?`<button class="copy-btn" onclick="togglePlan('${u.id}')">${u.plan==='pro'?'↓ Free':'↑ Pro'}</button><button class="copy-btn" style="color:var(--rose)" onclick="deleteUser('${u.id}')">✕</button>`:'<span style="color:var(--muted)">—</span>'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function togglePlan(uid) {
+  const u = DB.users.find(x=>x.id===uid);
+  if (!u || u.role==='admin') return;
+  u.plan = u.plan==='pro'?'free':'pro';
+  u.credits_limit = u.plan==='pro'?100:10;
+  renderAdminUsers();
+  notify(`✓ ${u.fname}'s plan → ${u.plan.toUpperCase()}`, 'jade');
+}
+
+function deleteUser(uid) {
+  if (!confirm('Delete this user?')) return;
+  const idx = DB.users.findIndex(u=>u.id===uid);
+  if (idx!==-1) DB.users.splice(idx,1);
+  renderAdminUsers();
+  notify('✓ User deleted','jade');
+}
+
+async function loadAdminStats() {
+  const total = DB.users.filter(u=>u.role!=='admin').length;
+  const pro = DB.users.filter(u=>u.plan==='pro').length;
+  document.getElementById('st-users').textContent = total;
+  document.getElementById('st-pro').textContent = pro;
+  document.getElementById('st-gens').textContent = DB.users.reduce((s,u)=>s+(u.generations||0),0);
+  document.getElementById('st-mrr').textContent = '$'+(pro*29);
+  document.getElementById('admin-stats-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+      <div style="background:var(--deep);border:1px solid var(--rim);border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Plan Breakdown</div>
+        <div style="font-size:13px;color:var(--sub)">Free Users: <b style="color:var(--text)">${total-pro}</b></div>
+        <div style="font-size:13px;color:var(--sub)">Pro Users: <b style="color:var(--jade)">${pro}</b></div>
+        <div style="font-size:13px;color:var(--sub)">Conversion: <b style="color:var(--neon)">${total?Math.round(pro/total*100):0}%</b></div>
+      </div>
+      <div style="background:var(--deep);border:1px solid var(--rim);border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Revenue</div>
+        <div style="font-size:13px;color:var(--sub)">MRR: <b style="color:var(--jade)">$${pro*29}</b></div>
+        <div style="font-size:13px;color:var(--sub)">ARR: <b style="color:var(--jade)">$${pro*29*12}</b></div>
+        <div style="font-size:13px;color:var(--sub)">ARPU: <b style="color:var(--neon)">$${total?Math.round(pro*29/total):0}</b></div>
+      </div>
+    </div>
+  `;
+}
+
+function openAddUser() { document.getElementById('modal-add').classList.add('open'); }
+function closeModal() { document.getElementById('modal-add').classList.remove('open'); }
+
+function addUser() {
+  const fname = document.getElementById('mu-fname').value.trim();
+  const email = document.getElementById('mu-email').value.trim().toLowerCase();
+  const pass = document.getElementById('mu-pass').value;
+  const plan = document.getElementById('mu-plan').value;
+  if (!fname || !email || !pass) { notify('✗ Fill all fields','rose'); return; }
+  DB.users.push({ id: String(Date.now()), fname, lname: document.getElementById('mu-lname').value, email, pass, role:'user', plan, credits_used:0, credits_limit:plan==='pro'?100:10, joined:new Date().toISOString().slice(0,10), generations:0 });
+  closeModal();
+  renderAdminUsers();
+  loadAdminStats();
+  notify('✓ User added!','jade');
+  ['mu-fname','mu-lname','mu-email','mu-pass'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function setPill(el, gid) {
+  document.querySelectorAll('#'+gid+' .pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function toggleChk(el) {
+  el.classList.toggle('done');
+  el.querySelector('.chk-box').textContent = el.classList.contains('done') ? '✓' : '';
+}
+
+function cp(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText||el.textContent).then(()=>notify('✓ Copied!','jade'));
+}
+
+function dlTxt(id, name) {
+  const text = document.getElementById(id).innerText;
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '_' + Date.now() + '.txt';
+  a.click();
+}
+
+function notify(msg, color='jade') {
+  const n = document.getElementById('notif');
+  const colors = { jade:'var(--jade)', rose:'var(--rose)', amber:'var(--amber)', iris:'var(--iris)' };
+  n.textContent = msg;
+  n.style.border = '1px solid ' + (colors[color]||colors.jade);
+  n.style.color = colors[color]||colors.jade;
+  n.style.display = 'block';
+  clearTimeout(n._t);
+  n._t = setTimeout(()=>n.style.display='none', 2500);
+}
+</script>
+</body>
+</html>
