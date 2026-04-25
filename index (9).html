@@ -1778,6 +1778,7 @@ select option { background: var(--deep); }
 // CONFIG
 // ═══════════════════════════════════════
 const API = 'https://contentcraft-backend-production.up.railway.app';
+const GROQ_KEY = ''; // Add your Groq key here if needed
 
 // Local DB for demo (when backend not available)
 const DB = {
@@ -2054,7 +2055,7 @@ async function callAPI(endpoint, body) {
   }
 }
 
-// Direct AI call using Anthropic API (no backend needed)
+// Direct Groq call - works from browser, free, no CORS issues
 async function callDirectAI(endpoint, body) {
   const persona = getPersona();
   const system = `You are a senior SEO content strategist with 10+ years experience in ${persona.niche}. Write for ${persona.audience} on ${persona.domain}.
@@ -2071,27 +2072,47 @@ Add INTERNAL_LINK_1 to INTERNAL_LINK_10 placeholders.
 FAQ: 8 questions 80-100w each. CONCLUSION: 150w with callback.
 FORMAT: ## H2, ### H3, **bold**`;
   } else if (endpoint === 'meta') {
-    prompt = `SEO meta tags for "${body.keyword}" in ${body.language||'English'}. Return ONLY JSON: {"title":"≤60 chars","description":"145-155 chars with CTA","og_title":"...","og_description":"..."}`;
+    prompt = `SEO meta tags for "${body.keyword}" in ${body.language||'English'}. Return ONLY valid JSON no markdown: {"title":"under 60 chars","description":"145-155 chars with CTA","og_title":"social title","og_description":"2 sentences"}`;
   } else if (endpoint === 'faq') {
-    prompt = `Write ${body.count||8} FAQs about "${body.topic||'the topic'}". Real PAA queries. Answers 40-60w.\n---FAQS---\nQ:[q]\nA:[a]\n---SCHEMA---\n<script type="application/ld+json">[FAQPage JSON-LD]<\/script>`;
+    prompt = `Write ${body.count||8} FAQs about "${body.topic||'the topic'}". Real PAA queries. Answers 40-60w direct.\n---FAQS---\nQ: [question]\nA: [answer]\n(repeat)\n---SCHEMA---\n<script type="application/ld+json">[FAQPage JSON-LD]<\/script>`;
   } else if (endpoint === 'classify') {
-    prompt = `Classify these keywords:\n${body.keywords}\nFor each: Intent|Format|Buyer Stage|Priority|Word Count. Table with | separators.`;
+    prompt = `Classify these keywords:\n${body.keywords}\nFor each: Intent|Content Format|Buyer Stage|Priority|Word Count. Clean table with | separators.`;
   } else if (endpoint === 'gap') {
-    prompt = `Content gap analysis.\nMY OUTLINE:\n${body.myOutline}\nCOMPETITOR:\n${body.competitorOutline||'typical competitor'}\n1.Missing Topics 2.Missing Angles 3.Priority Additions 4.New H2s 5.Contrarian Angles.`;
+    prompt = `Content gap analysis.\nMY OUTLINE:\n${body.myOutline}\nCOMPETITOR:\n${body.competitorOutline||'typical competitor'}\n1.Missing Topics 2.Missing Angles 3.Priority Additions 4.New H2s 5.Contrarian Angles. Be specific.`;
   } else if (endpoint === 'snippet') {
-    prompt = `Featured snippet for: "${body.question}". Type: ${body.type||'Paragraph'}. Under 55 words. Direct answer. 1)Snippet 2)Word count 3)HTML`;
+    prompt = `Featured snippet for: "${body.question}". Type: ${body.type||'Paragraph'}. Under 55 words STRICTLY. Direct answer. No fluff.\n1) Snippet text\n2) Word count\n3) HTML version`;
   } else if (endpoint === 'cluster') {
-    prompt = `Topic cluster for "${body.niche}" in ${body.language||'English'}. 1 PILLAR + 8 SUPPORTING PAGES. Each: title, keyword, intent, word count, 2-3 links.`;
+    prompt = `Topic cluster for "${body.niche}" in ${body.language||'English'}. ${body.pillarKeyword?`Pillar: "${body.pillarKeyword}"`:''}. 1 PILLAR PAGE + 8 SUPPORTING PAGES. Each: title, keyword, intent, word count, 2-3 internal links, monetization angle.`;
   } else if (endpoint === 'humanize') {
-    prompt = `Rewrite as real human. REMOVE: ensure/leverage/dive into/moreover/furthermore. USE: contractions, active voice. Return ONLY humanized text:\n\n${body.text}`;
+    prompt = `Rewrite as real human writer. REMOVE: ensure/leverage/dive into/moreover/furthermore/delve/utilize/em dashes. USE: contractions, active voice, varied sentence lengths. Flesch 65+. Return ONLY humanized text:\n\n${body.text}`;
   } else if (endpoint === 'eeat') {
-    prompt = `E-E-A-T audit. 5 EDITS:\nEDIT #N—[Type]\nBEFORE:[text]\nAFTER:[improved]\nWHY:[reason]\n\nARTICLE:\n${body.article}`;
+    prompt = `E-E-A-T audit for this article. Focus: ${body.focus||'All Signals'}.\n\n${body.article}\n\n5 SPECIFIC EDITS:\nEDIT #N — [Signal Type]\nLOCATION: [section]\nBEFORE: [current text]\nAFTER: [improved version]\nWHY: [1 sentence]`;
   } else if (endpoint === 'opening') {
-    prompt = `400-500 word power opening for "${body.topic}". Style: ${body.style||'Story'}. NEVER "Are you looking for...". Real scenario, costs, dates, personal story, stat.`;
+    prompt = `Write 400-500 word power opening for "${body.topic}". Style: ${body.style||'Story Scenario'}.\nNEVER start with "Are you looking for..." or "Picture yourself...".\nStart with REAL specific scenario: exact costs, dates, locations.\nInclude: multi-sensory details, 2-3 provocative questions, personal story with vulnerable detail, surprising stat, value promise.`;
   } else {
-    prompt = body.keywords || body.myOutline || body.article || 'Generate content';
+    prompt = `${body.keywords || body.myOutline || body.article || 'Write helpful SEO content'}`;
   }
 
+  // Call backend proxy which handles Groq
+  try {
+    const res = await fetch(`${API}/api/generate/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...body,
+        model: selectedModel,
+        persona: getPersona(),
+        _bypass: true // signal to use any available model
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.content) return data.content;
+      if (data.faqs) return data;
+    }
+  } catch(e) { /* try Anthropic directly */ }
+
+  // Final fallback: Anthropic API directly
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2104,15 +2125,13 @@ FORMAT: ## H2, ### H3, **bold**`;
   });
 
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
+  if (data.error) throw new Error(data.error.message || 'Generation failed');
   const text = data.content?.[0]?.text || '';
 
-  // Handle FAQ response
   if (endpoint === 'faq') {
     const parts = text.split('---SCHEMA---');
     return { faqs: parts[0].replace('---FAQS---','').trim(), schema: parts[1]?.trim()||'' };
   }
-
   return text;
 }
 
