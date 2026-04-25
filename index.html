@@ -589,7 +589,8 @@ body::before {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--void);
 }
 
@@ -695,7 +696,7 @@ body::before {
 .model-selector select option { background: var(--deep); }
 
 /* CONTENT AREA */
-.content { flex: 1; padding: 24px; overflow-y: auto; }
+.content { flex: 1; padding: 24px; overflow-y: auto; height: calc(100vh - 56px); }
 
 /* PANELS */
 .panel { display: none; animation: panel-in 0.3s ease; }
@@ -804,11 +805,18 @@ select option { background: var(--deep); }
 .output-body {
   padding: 18px;
   min-height: 180px;
+  max-height: 70vh;
+  overflow-y: auto;
   font-size: 13px;
   line-height: 1.85;
   white-space: pre-wrap;
   color: var(--text);
+  scrollbar-width: thin;
+  scrollbar-color: var(--rim2) transparent;
 }
+.output-body::-webkit-scrollbar { width: 4px; }
+.output-body::-webkit-scrollbar-track { background: transparent; }
+.output-body::-webkit-scrollbar-thumb { background: var(--rim2); border-radius: 99px; }
 
 .output-placeholder {
   color: var(--ghost);
@@ -2118,7 +2126,7 @@ FORMAT: ## H2, ### H3, **bold**`;
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
+      max_tokens: 8000,
       system,
       messages: [{ role: 'user', content: prompt }]
     })
